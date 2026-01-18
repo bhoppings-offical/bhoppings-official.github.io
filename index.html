@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Scripting Framework</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Distance Scripting Framework</h1>
+    
+    <p>JavaScript scripting framework for Minecraft. Create custom HUDs, movement enhancements, combat utilities, and more.</p>
+
+    <h2>Quick Start</h2>
+    <p>Place scripts in: <code>config/DistanceMod/scripts/</code></p>
+    <p>Scripts must end with <code>.dscript</code></p>
+
+    <h2>Documentation</h2>
+    <ul>
+        <li><a href="docs/getting-started.md">Getting Started</a> - Installation and first script</li>
+        <li><a href="docs/api-reference.md">API Reference</a> - Complete function documentation</li>
+        <li><a href="docs/events.md">Event System</a> - Event handlers and usage</li>
+        <li><a href="docs/rendering.md">Rendering Guide</a> - 2D/3D rendering</li>
+        <li><a href="docs/gui-settings.md">GUI Settings</a> - Creating custom settings</li>
+        <li><a href="docs/examples.md">Examples</a> - Complete example scripts</li>
+        <li><a href="docs/best-practices.md">Best Practices</a> - Tips and optimization</li>
+    </ul>
+
+    <h2>Example Scripts</h2>
+    <ul>
+        <li>Speed Meter - Display movement speed</li>
+        <li>Auto Jump - Automatic jumping</li>
+        <li>Particle Trail - Leave particle effects</li>
+        <li>Combat Counter - Track attacks</li>
+        <li>FPS Monitor - Monitor performance</li>
+        <li>Enhanced Movement - Complete movement suite</li>
+    </ul>
+
+    <h2>Basic Example</h2>
+    <pre><code>// MyScript.dscript
+Distance.log("Script loaded!");
+Distance.chat("&aHello from Distance!");
+
+Distance.on("tick", function() {
+    // Runs every game tick
+});
+
+Distance.on("render2d", function() {
+    Distance.drawTextShadow("Hello!", 10, 10, 0xFFFFFF);
+});</code></pre>
+
+    <h2>Features</h2>
+    <ul>
+        <li>Player position, motion, rotation, health</li>
+        <li>Keyboard and mouse input</li>
+        <li>2D/3D rendering</li>
+        <li>Particle effects and sounds</li>
+        <li>Custom GUI settings</li>
+        <li>Event system (tick, render, attack)</li>
+    </ul>
+</body>
+</html>
