@@ -1,6 +1,6 @@
 title: Distance Documentation
 description: Distance is cute
-theme: minima
+theme: just-the-docs
 
 defaults:
   - scope:
