@@ -1,0 +1,328 @@
+# Event System
+
+Distance provides an event system that allows your scripts to react to game events.
+
+## Registering Events
+
+Use `Distance.on(eventName, callback)` to register event handlers:
+
+```javascript
+Distance.on("tick", function(event) {
+    // Your code here
+});
+```
+
+## Available Events
+
+### `tick`
+
+Fires every game tick (20 times per second).
+
+**Parameters:** `event` (null)
+
+**Use for:**
+- Movement logic
+- Player state checks
+- Timers and cooldowns
+- Input handling
+
+```javascript
+Distance.on("tick", function(event) {
+    if (Distance.isPlayerNull()) return;
+    
+    // Runs 20 times per second
+    Distance.log("Tick!");
+});
+```
+
+**Example - Speed Boost:**
+```javascript
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    if (Distance.isKeyDown(17)) { // W key
+        var mx = Distance.getMotionX() * 1.5;
+        var mz = Distance.getMotionZ() * 1.5;
+        Distance.setMotion(mx, Distance.getMotionY(), mz);
+    }
+});
+```
+
+**Example - Auto Jump:**
+```javascript
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    if (Distance.isOnGround() && Distance.isKeyDown(17)) {
+        Distance.setMotion(
+            Distance.getMotionX(),
+            0.42, // Jump velocity
+            Distance.getMotionZ()
+        );
+    }
+});
+```
+
+---
+
+### `render2d`
+
+Fires when rendering the 2D overlay (HUD).
+
+**Parameters:** `resolution` (screen info)
+
+**Use for:**
+- Drawing HUD elements
+- Displaying text
+- Rendering UI components
+- Status indicators
+
+```javascript
+Distance.on("render2d", function(resolution) {
+    // Draw your HUD here
+});
+```
+
+**Example - Simple HUD:**
+```javascript
+Distance.on("render2d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var health = Distance.getHealth();
+    var x = Distance.getPlayerX().toFixed(1);
+    var y = Distance.getPlayerY().toFixed(1);
+    var z = Distance.getPlayerZ().toFixed(1);
+    
+    Distance.drawTextShadow("Health: " + health, 10, 10, 0xFF5555);
+    Distance.drawTextShadow("Pos: " + x + ", " + y + ", " + z, 10, 25, 0x55FF55);
+});
+```
+
+**Example - FPS Counter:**
+```javascript
+Distance.on("render2d", function() {
+    var fps = Distance.getFPS();
+    var color = fps >= 60 ? 0x55FF55 : 0xFF5555;
+    
+    Distance.drawTextShadow("FPS: " + fps, 10, 10, color);
+});
+```
+
+---
+
+### `render3d`
+
+Fires when rendering the 3D world.
+
+**Parameters:** `partialTicks` (float between 0.0 and 1.0)
+
+**Use for:**
+- 3D rendering
+- World space effects
+- Custom entity rendering
+
+```javascript
+Distance.on("render3d", function(partialTicks) {
+    // partialTicks: used for smooth rendering between ticks
+    // 3D rendering code here
+});
+```
+
+**Note:** Most scripts use `render2d` for HUD elements. Use `render3d` only when you need to render in world space.
+
+---
+
+### `attack`
+
+Fires when the player attacks an entity.
+
+**Parameters:** `target` (Entity object being attacked)
+
+**Use for:**
+- Hit counters
+- Combat statistics
+- Attack effects
+- Sound/particle feedback
+
+```javascript
+Distance.on("attack", function(target) {
+    var targetName = target.getName();
+    Distance.chat("You attacked: " + targetName);
+});
+```
+
+**Example - Hit Counter:**
+```javascript
+var hitCount = 0;
+
+Distance.on("attack", function(target) {
+    hitCount++;
+    Distance.chat("&e⚔ Hit #" + hitCount + " on " + target.getName());
+    Distance.playSound("random.successful_hit", 0.5, 1.5);
+});
+```
+
+**Example - Attack Particles:**
+```javascript
+Distance.on("attack", function(target) {
+    // Spawn particles at target location
+    if (target.posX !== undefined) {
+        Distance.spawnParticle("CRIT", 
+            target.posX, 
+            target.posY + 1, 
+            target.posZ, 
+            0, 0, 0
+        );
+    }
+});
+```
+
+---
+
+## Multiple Event Handlers
+
+You can register multiple handlers for the same event:
+
+```javascript
+Distance.on("tick", function() {
+    Distance.log("Handler 1");
+});
+
+Distance.on("tick", function() {
+    Distance.log("Handler 2");
+});
+
+// Both will execute every tick
+```
+
+## Event Best Practices
+
+### 1. Always Check for Null
+
+```javascript
+Distance.on("tick", function() {
+    // GOOD
+    if (Distance.isPlayerNull()) return;
+    var health = Distance.getHealth();
+});
+
+Distance.on("tick", function() {
+    // BAD - will crash if player is null
+    var health = Distance.getHealth();
+});
+```
+
+### 2. Avoid Heavy Computation in Render
+
+Compute values in `tick`, display in `render2d`:
+
+```javascript
+// GOOD
+var cachedSpeed = 0;
+
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    var mx = Distance.getMotionX();
+    var mz = Distance.getMotionZ();
+    cachedSpeed = Math.sqrt(mx * mx + mz * mz);
+});
+
+Distance.on("render2d", function() {
+    Distance.drawText("Speed: " + cachedSpeed.toFixed(2), 10, 10, 0xFFFFFF);
+});
+```
+
+### 3. Use Tick Counters for Timing
+
+```javascript
+var tickCounter = 0;
+
+Distance.on("tick", function() {
+    tickCounter++;
+    
+    // Do something every 20 ticks (1 second)
+    if (tickCounter % 20 === 0) {
+        Distance.chat("One second passed!");
+    }
+    
+    // Do something every 3 ticks
+    if (tickCounter % 3 === 0) {
+        // Spawn particles less frequently
+    }
+});
+```
+
+### 4. Limit Chat Spam
+
+```javascript
+var lastChatTime = 0;
+
+Distance.on("tick", function() {
+    var now = Date.now();
+    
+    if (someCondition && now - lastChatTime > 1000) {
+        Distance.chat("Message");
+        lastChatTime = now;
+    }
+});
+```
+
+### 5. Handle Errors Gracefully
+
+```javascript
+Distance.on("tick", function() {
+    try {
+        if (Distance.isPlayerNull()) return;
+        
+        // Your code here
+        
+    } catch (e) {
+        Distance.error("Script error: " + e.message);
+    }
+});
+```
+
+## Complete Event Example
+
+```javascript
+// Combat Statistics Tracker
+
+var totalHits = 0;
+var sessionStart = Date.now();
+var lastSpeed = 0;
+
+// Tick event - update calculations
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var mx = Distance.getMotionX();
+    var mz = Distance.getMotionZ();
+    lastSpeed = Math.sqrt(mx * mx + mz * mz) * 20;
+});
+
+// Render event - display HUD
+Distance.on("render2d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var elapsed = (Date.now() - sessionStart) / 1000;
+    var hitsPerMinute = (totalHits / elapsed) * 60;
+    
+    Distance.drawRoundedRect(10, 10, 150, 60, 3, 0x90000000);
+    Distance.drawTextShadow("Combat Stats", 15, 15, 0xFFAA00);
+    Distance.drawTextShadow("Hits: " + totalHits, 15, 30, 0xFFFFFF);
+    Distance.drawTextShadow("APM: " + hitsPerMinute.toFixed(1), 15, 45, 0xFF5555);
+    Distance.drawTextShadow("Speed: " + lastSpeed.toFixed(2), 15, 60, 0x55FF55);
+});
+
+// Attack event - count hits
+Distance.on("attack", function(target) {
+    totalHits++;
+    Distance.playSound("random.successful_hit", 0.5, 1.5);
+});
+```
+
+## Next Steps
+
+- Learn about [Rendering](rendering.md) for HUD creation
+- Explore [GUI Settings](gui-settings.md) for user controls
+- View complete [Examples](examples.md)
