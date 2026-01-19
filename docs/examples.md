@@ -12,6 +12,7 @@ Complete, ready-to-use Distance scripts showcasing different features.
 - [FPS Monitor](#fps-monitor)
 - [Direction Indicator](#direction-indicator)
 - [Enhanced Movement (Complete)](#enhanced-movement-complete)
+- [Advanced Demo Script](#advanced-demo-script)
 
 ---
 
@@ -445,6 +446,222 @@ Distance.log("Enhanced Movement script loaded successfully!");
 Distance.chat("&aEnhanced Movement loaded! Open GUI to configure.");
 ```
 
+## Advanced Demo Script
+
+An advanced script with lots of advanced features.
+
+```javascript
+Distance.log("Advanced Demo script loading...");
+
+Distance.createTab("Advanced Demo", "world");
+
+var enabled = false;
+var showAvatar = true;
+var show3DMarkers = false;
+var autoSort = false;
+var chatFilter = "";
+var markerColor = "FF00FF00";
+var notifyMode = "All";
+
+var markers = [];
+var lastKeyState = false;
+var rareItems = 0;
+
+Distance.addToggle("Enable Features", false, function(value) {
+    enabled = value;
+    Distance.chat(value ? "&aAdvanced Demo enabled!" : "&cAdvanced Demo disabled!");
+});
+
+Distance.addToggle("Show Avatar", true, function(value) {
+    showAvatar = value;
+});
+
+Distance.addToggle("3D Markers", false, function(value) {
+    show3DMarkers = value;
+});
+
+Distance.addToggle("Auto Sort Chest", false, function(value) {
+    autoSort = value;
+});
+
+Distance.addTextInput("Chat Filter", "", function(value) {
+    chatFilter = value;
+});
+
+Distance.addColor("Marker Color", "FF00FF00", function(value) {
+    markerColor = value;
+});
+
+Distance.addSelector("Notifications", ["All", "Rare Only", "None"], "All", function(value) {
+    notifyMode = value;
+});
+
+Distance.downloadImage(
+    "https://crafatar.com/avatars/069a79f4-44e9-4726-a5be-fca90e38aaf5",
+    "minecraft_avatar",
+    function() {
+        Distance.log("Avatar loaded!");
+    }
+);
+
+Distance.on("tick", function() {
+    if (!enabled || Distance.isPlayerNull()) return;
+    
+    if (show3DMarkers) {
+        var keyDown = Distance.isKeyDown(50);
+        
+        if (keyDown && !lastKeyState) {
+            markers.push({
+                x: Distance.getPlayerX(),
+                y: Distance.getPlayerY(),
+                z: Distance.getPlayerZ(),
+                time: Date.now()
+            });
+            Distance.chat("&aMarker placed!");
+            Distance.playSound("random.orb", 1.0, 1.5);
+        }
+        
+        lastKeyState = keyDown;
+    }
+    
+    var currentTime = Date.now();
+    for (var i = markers.length - 1; i >= 0; i--) {
+        if (currentTime - markers[i].time > 60000) {
+            markers.splice(i, 1);
+        }
+    }
+});
+
+Distance.on("render2d", function() {
+    if (!enabled) return;
+    
+    var screenWidth = Distance.getScreenWidth();
+    
+    Distance.drawRoundedRect(screenWidth - 160, 10, 150, 100, 3, 0x90000000);
+    Distance.drawTextShadow("&6Advanced Demo", screenWidth - 155, 15, 0xFFAA00);
+    
+    if (showAvatar) {
+        Distance.drawImage("minecraft_avatar", screenWidth - 155, 30, 32, 32);
+    }
+    
+    Distance.drawTextShadow("Markers: " + markers.length, screenWidth - 155, 70, 0xFFFFFF);
+    Distance.drawTextShadow("Rare Items: " + rareItems, screenWidth - 155, 85, 0xFFFFFF55);
+    
+    if (Distance.isSneaking()) {
+        Distance.drawTextShadow("&eSNEAKING", screenWidth - 155, 100, 0xFFFF55);
+    }
+});
+
+Distance.on("render3d", function() {
+    if (!enabled || !show3DMarkers) return;
+    
+    var colorInt = parseInt(markerColor, 16);
+    if (isNaN(colorInt)) colorInt = 0xFF00FF00;
+    
+    for (var i = 0; i < markers.length; i++) {
+        var m = markers[i];
+        
+        Distance.drawBox3D(m.x - 0.5, m.y, m.z - 0.5, 1, 2, 1, colorInt);
+        
+        if (!Distance.isPlayerNull()) {
+            var px = Distance.getPlayerX();
+            var py = Distance.getPlayerY();
+            var pz = Distance.getPlayerZ();
+            
+            var dist = Distance.getDistance(px, py, pz, m.x, m.y, m.z);
+            
+            if (dist < 50) {
+                Distance.drawLine3D(px, py + 1, pz, m.x, m.y + 1, m.z, 0x8000FFFF);
+            }
+        }
+    }
+});
+
+Distance.on("chatReceive", function(message) {
+    if (!enabled) return;
+    
+    if (chatFilter !== "" && message.includes(chatFilter)) {
+        Distance.notification("Chat Filter", "Match: " + message, 3);
+        Distance.playSound("note.pling", 1.0, 1.0);
+    }
+});
+
+Distance.on("itemPickup", function(item) {
+    if (!enabled) return;
+    
+    var isRare = item.name.includes("Diamond") || 
+                 item.name.includes("Emerald") || 
+                 item.name.includes("Gold");
+    
+    if (isRare) {
+        rareItems++;
+        
+        if (notifyMode === "All" || notifyMode === "Rare Only") {
+            Distance.notification("Rare Item!", item.name + " x" + item.count, 4);
+            Distance.playSound("random.levelup", 1.0, 1.5);
+        }
+    } else if (notifyMode === "All") {
+        Distance.notification("Item Pickup", item.name + " x" + item.count, 2);
+    }
+});
+
+Distance.on("itemDrop", function(item) {
+    if (!enabled) return;
+    
+    Distance.log("Dropped: " + item.name + " x" + item.count);
+});
+
+Distance.on("chestOpen", function() {
+    if (!enabled || !autoSort) return;
+    
+    Distance.chat("&eAuto-sorting chest...");
+    
+    var inventory = Distance.getInventory();
+    var diamondSlot = -1;
+    
+    for (var i = 0; i < 27; i++) {
+        if (inventory[i] != null && inventory[i].name.includes("Diamond")) {
+            diamondSlot = i;
+            break;
+        }
+    }
+    
+    if (diamondSlot !== -1) {
+        Distance.moveItem(diamondSlot, 0);
+        Distance.chat("&aMoved diamonds to top slot!");
+    }
+});
+
+Distance.on("inventoryOpen", function() {
+    if (!enabled) return;
+    
+    var held = Distance.getHeldItem();
+    if (held != null) {
+        Distance.log("Held item: " + held.name + " (ID: " + held.id + ")");
+        
+        if (held.maxDamage > 0) {
+            var durability = held.maxDamage - held.damage;
+            var percent = (durability / held.maxDamage) * 100;
+            
+            if (percent < 20) {
+                Distance.notification("Low Durability!", held.name + ": " + percent.toFixed(1) + "%", 3);
+            }
+        }
+    }
+});
+
+Distance.on("attack", function(target) {
+    if (!enabled) return;
+    
+    var targetEntity = Distance.getTargetEntity();
+    if (targetEntity != null) {
+        Distance.log("Attacking: " + targetEntity.getName());
+    }
+});
+
+Distance.log("Advanced Demo loaded!");
+Distance.chat("&aAdvanced Demo loaded! Press M to place 3D markers.");
+```
 ---
 
 ## Using These Examples
