@@ -9,6 +9,10 @@ Complete reference for all Distance API functions.
 - [World & Game API](#world--game-api)
 - [Input API](#input-api)
 - [Particle & Sound Effects](#particle--sound-effects)
+- [Web Requests](#web-requests)
+- [Inventory & Items](#inventory--items)
+- [Advanced Rendering](#advanced-rendering)
+- [Gameplay Actions](#gameplay-actions)
 
 ---
 
@@ -357,6 +361,224 @@ Distance.playSound("random.orb", 0.5, 1.0);
 - `note.bass`, `note.pling`
 - `fire.ignite`
 - `random.pop`
+
+---
+
+## Web Requests
+
+### `Distance.httpGet(url, callback)`
+
+Performs an asynchronous GET request.
+
+```javascript
+Distance.httpGet("https://api.example.com/data", function(response) {
+    Distance.log("Response: " + response);
+    Distance.chat("&aData loaded!");
+});
+```
+
+### `Distance.httpPost(url, data, callback)`
+
+Performs an asynchronous POST request.
+
+```javascript
+var data = JSON.stringify({ username: "player", score: 100 });
+
+Distance.httpPost("https://api.example.com/score", data, function(response) {
+    Distance.log("Server response: " + response);
+});
+```
+
+### `Distance.downloadImage(url, imageId, callback)`
+
+Downloads an image for later rendering.
+
+```javascript
+Distance.downloadImage(
+    "https://example.com/image.png",
+    "my_icon",
+    function() {
+        Distance.log("Image ready!");
+    }
+);
+
+Distance.on("render2d", function() {
+    Distance.drawImage("my_icon", 10, 10, 32, 32);
+});
+```
+
+---
+
+## Inventory & Items
+
+### `Distance.getHeldItem()`
+
+Returns information about the currently held item.
+
+```javascript
+var item = Distance.getHeldItem();
+if (item != null) {
+    Distance.chat("Holding: " + item.name);
+    Distance.chat("Count: " + item.count);
+}
+```
+
+**Returns object with:**
+- `name` - Display name
+- `count` - Stack size
+- `damage` - Current damage/durability
+- `maxDamage` - Maximum damage
+- `id` - Item registry ID
+
+### `Distance.getInventory()`
+
+Returns array of all inventory items.
+
+```javascript
+var inventory = Distance.getInventory();
+for (var i = 0; i < inventory.length; i++) {
+    if (inventory[i] != null) {
+        Distance.log("Slot " + i + ": " + inventory[i].name);
+    }
+}
+```
+
+### `Distance.moveItem(fromSlot, toSlot)`
+
+Moves item between slots in open container.
+
+```javascript
+Distance.moveItem(0, 9);
+```
+
+### `Distance.dropItem(slot)`
+
+Drops item from specified slot.
+
+```javascript
+Distance.dropItem(0);
+```
+
+---
+
+## Advanced Rendering
+
+### 2D Image Rendering
+
+#### `Distance.drawImage(imageId, x, y, width, height)`
+
+Draws a previously downloaded image.
+
+```javascript
+Distance.downloadImage("https://example.com/logo.png", "logo", function() {
+    Distance.log("Logo loaded");
+});
+
+Distance.on("render2d", function() {
+    Distance.drawImage("logo", 10, 10, 64, 64);
+});
+```
+
+### 3D Rendering
+
+#### `Distance.drawBox3D(x, y, z, width, height, depth, color)`
+
+Draws a 3D box in world space.
+
+```javascript
+Distance.on("render3d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var px = Distance.getPlayerX();
+    var py = Distance.getPlayerY();
+    var pz = Distance.getPlayerZ();
+    
+    Distance.drawBox3D(px + 2, py, pz, 1, 2, 1, 0x8000FF00);
+});
+```
+
+#### `Distance.drawLine3D(x1, y1, z1, x2, y2, z2, color)`
+
+Draws a 3D line between two points.
+
+```javascript
+Distance.on("render3d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var px = Distance.getPlayerX();
+    var py = Distance.getPlayerY();
+    var pz = Distance.getPlayerZ();
+    
+    Distance.drawLine3D(px, py, pz, px + 5, py + 5, pz + 5, 0xFFFF0000);
+});
+```
+
+---
+
+## Gameplay Actions
+
+### `Distance.sendMessage(text)`
+
+Sends a chat message as the player.
+
+```javascript
+Distance.sendMessage("Hello world!");
+```
+
+### `Distance.executeCommand(cmd)`
+
+Executes a command.
+
+```javascript
+Distance.executeCommand("/help");
+Distance.executeCommand("gamemode creative");
+```
+
+### `Distance.notification(title, message, durationSeconds)`
+
+Shows a notification.
+
+```javascript
+Distance.notification("Alert", "Important message!", 5);
+```
+
+### `Distance.getDistance(x1, y1, z1, x2, y2, z2)`
+
+Calculates distance between two 3D points.
+
+```javascript
+var dist = Distance.getDistance(
+    Distance.getPlayerX(), Distance.getPlayerY(), Distance.getPlayerZ(),
+    100, 64, 100
+);
+Distance.chat("Distance to target: " + dist.toFixed(2));
+```
+
+### Player State Checks
+
+#### `Distance.isSneaking()`
+Returns `true` if player is sneaking.
+
+#### `Distance.isSprinting()`
+Returns `true` if player is sprinting.
+
+#### `Distance.getTargetEntity()`
+Returns the entity the player is looking at, or `null`.
+
+```javascript
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    if (Distance.isSneaking()) {
+        Distance.chat("Sneaking!");
+    }
+    
+    var target = Distance.getTargetEntity();
+    if (target != null) {
+        Distance.chat("Looking at: " + target.getName());
+    }
+});
+```
 
 ---
 
