@@ -179,6 +179,129 @@ Distance.on("attack", function(target) {
 
 ---
 
+### `chatReceive`
+
+Fires when a chat message is received.
+
+**Parameters:** `message` (string - unformatted chat text)
+
+**Use for:**
+- Chat filters
+- Message logging
+- Auto-responses
+- Keyword detection
+
+```javascript
+Distance.on("chatReceive", function(message) {
+    Distance.log("Chat: " + message);
+    
+    if (message.includes("hello")) {
+        Distance.sendMessage("Hello!");
+    }
+});
+```
+
+---
+
+### `itemPickup`
+
+Fires when the player picks up an item.
+
+**Parameters:** `item` (object with `name` and `count`)
+
+**Use for:**
+- Item tracking
+- Auto-sorting
+- Pickup notifications
+
+```javascript
+Distance.on("itemPickup", function(item) {
+    Distance.chat("&aPicked up: " + item.name + " x" + item.count);
+    Distance.playSound("random.orb", 1.0, 1.0);
+});
+```
+
+---
+
+### `itemDrop`
+
+Fires when the player drops an item.
+
+**Parameters:** `item` (object with `name` and `count`)
+
+**Use for:**
+- Drop logging
+- Item tracking
+
+```javascript
+Distance.on("itemDrop", function(item) {
+    Distance.chat("&cDropped: " + item.name + " x" + item.count);
+});
+```
+
+---
+
+### `chestOpen`
+
+Fires when a chest GUI is opened.
+
+**Parameters:** `null`
+
+**Use for:**
+- Chest organization
+- Auto-looting
+- Inventory management
+
+```javascript
+Distance.on("chestOpen", function() {
+    Distance.chat("&eChest opened!");
+});
+```
+
+---
+
+### `chestClose`
+
+Fires when a chest GUI is closed.
+
+**Parameters:** `null`
+
+```javascript
+Distance.on("chestClose", function() {
+    Distance.chat("&eChest closed!");
+});
+```
+
+---
+
+### `inventoryOpen`
+
+Fires when the inventory GUI is opened.
+
+**Parameters:** `null`
+
+```javascript
+Distance.on("inventoryOpen", function() {
+    Distance.log("Inventory opened");
+});
+```
+
+---
+
+### `inventoryClose`
+
+Fires when the inventory GUI is closed.
+
+**Parameters:** `null`
+
+```javascript
+Distance.on("inventoryClose", function() {
+    Distance.log("Inventory closed");
+});
+```
+
+---
+
 ## Multiple Event Handlers
 
 You can register multiple handlers for the same event:
