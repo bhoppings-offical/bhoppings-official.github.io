@@ -27,11 +27,24 @@ Distance.createTab("My Script", "star");
 ```
 
 **Available Icons:**
-- `star` - Star icon (recommended for features)
-- `gear` - Settings icon
-- `sword` - Combat icon
-- `heart` - Health/life icon
-- More icons available (experiment!)
+- announcement
+- audio
+- effects
+- folder
+- general_settings
+- heart
+- image
+- irc
+- placeholder
+- premium
+- script
+- search
+- star
+- sun
+- targeter
+- user
+- visuals
+- world
 
 **Best Practice:** Create your tab at the top of your script, before adding settings.
 
