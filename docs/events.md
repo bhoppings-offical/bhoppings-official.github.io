@@ -245,18 +245,34 @@ Distance.on("itemDrop", function(item) {
 
 Fires when a chest GUI is opened.
 
-**Parameters:** `null`
+**Parameters:** `items` (array of item objects in the chest)
 
 **Use for:**
 - Chest organization
 - Auto-looting
 - Inventory management
+- Item detection
 
 ```javascript
-Distance.on("chestOpen", function() {
-    Distance.chat("&eChest opened!");
+Distance.on("chestOpen", function(items) {
+    Distance.chat("&eChest opened with " + items.length + " items!");
+    
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        Distance.log("Slot " + item.slot + ": " + item.name + " x" + item.count);
+        
+        if (item.name.includes("Diamond")) {
+            Distance.chat("&bFound diamond item in slot " + item.slot);
+        }
+    }
 });
 ```
+
+**Item object properties:**
+- `name` - Display name
+- `count` - Stack size
+- `slot` - Slot index
+- `id` - Item registry ID
 
 ---
 
@@ -297,6 +313,92 @@ Fires when the inventory GUI is closed.
 ```javascript
 Distance.on("inventoryClose", function() {
     Distance.log("Inventory closed");
+});
+```
+
+---
+
+### `key`
+
+Fires when a key is pressed.
+
+**Parameters:** `keyCode` (integer key code)
+
+**Use for:**
+- Custom keybindings
+- Hotkeys
+- Toggle controls
+
+```javascript
+Distance.on("key", function(keyCode) {
+    Distance.log("Key pressed: " + keyCode);
+    
+    if (keyCode === 38) {
+        Distance.chat("L key pressed!");
+    }
+});
+```
+
+---
+
+### `keyInput`
+
+Enhanced key input event (fires for all key events).
+
+**Parameters:** `keyCode` (integer key code)
+
+```javascript
+Distance.on("keyInput", function(keyCode) {
+    Distance.log("Key input: " + keyCode);
+});
+```
+
+---
+
+### `click`
+
+Fires when a mouse button is clicked.
+
+**Parameters:** `button` (integer: 0=left, 1=right, 2=middle)
+
+**Use for:**
+- Custom click actions
+- Click counters
+- Mouse-based controls
+
+```javascript
+var clickCount = 0;
+
+Distance.on("click", function(button) {
+    clickCount++;
+    Distance.chat("Click #" + clickCount + " (button " + button + ")");
+    
+    if (button === 0) {
+        Distance.chat("Left click!");
+    } else if (button === 1) {
+        Distance.chat("Right click!");
+    }
+});
+```
+
+---
+
+### `worldChange`
+
+Fires when the player joins a world.
+
+**Parameters:** `null`
+
+**Use for:**
+- Resetting state
+- Server detection
+- World-specific initialization
+
+```javascript
+Distance.on("worldChange", function() {
+    Distance.chat("&aJoined world!");
+    var server = Distance.currentServerIP();
+    Distance.chat("Server: " + server);
 });
 ```
 
