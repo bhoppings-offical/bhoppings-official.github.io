@@ -6,6 +6,7 @@ Complete reference for all Distance API functions.
 
 - [Core Functions](#core-functions)
 - [Player API](#player-api)
+- [Rotation & Combat](#rotation--combat)
 - [World & Game API](#world--game-api)
 - [Input API](#input-api)
 - [Particle & Sound Effects](#particle--sound-effects)
@@ -60,6 +61,25 @@ Sends a red error message to chat.
 
 ```javascript
 Distance.error("Something went wrong!");
+```
+
+### `Distance.disable()`
+
+Disables the current script.
+
+```javascript
+if (someErrorCondition) {
+    Distance.error("Critical error, disabling script");
+    Distance.disable();
+}
+```
+
+### `Distance.reset()`
+
+Reloads the current script (re-reads and re-evaluates the file).
+
+```javascript
+Distance.reset();
 ```
 
 ---
@@ -162,6 +182,32 @@ Returns player name.
 #### `Distance.isOnGround()`
 Returns `true` if player is on the ground.
 
+#### `Distance.onGround()`
+Alias for `isOnGround()`.
+
+#### `Distance.getFallDistance()`
+Returns current fall distance.
+
+```javascript
+var fallDist = Distance.getFallDistance();
+if (fallDist > 3) {
+    Distance.chat("&cHigh fall detected!");
+}
+```
+
+#### `Distance.jump()`
+Makes the player jump.
+
+```javascript
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    if (Distance.isOnGround()) {
+        Distance.jump();
+    }
+});
+```
+
 ```javascript
 var health = Distance.getHealth();
 var maxHealth = Distance.getMaxHealth();
@@ -194,9 +240,87 @@ Distance.on("tick", function() {
 
 ---
 
+## Rotation & Combat
+
+### `Distance.setRotation(yaw, pitch)`
+
+Sets player's rotation.
+
+```javascript
+Distance.setRotation(90, 0);
+```
+
+### `Distance.lookAt(x, y, z)`
+
+Makes player look at specific coordinates.
+
+```javascript
+Distance.on("tick", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    Distance.lookAt(100, 64, 100);
+});
+```
+
+### `Distance.lookAtEntity(entity)`
+
+Makes player look at an entity.
+
+```javascript
+Distance.on("tick", function() {
+    var target = Distance.getTargetEntity();
+    if (target != null) {
+        Distance.lookAtEntity(target);
+    }
+});
+```
+
+### `Distance.attack(entity)`
+
+Attacks an entity.
+
+```javascript
+Distance.on("tick", function() {
+    var target = Distance.getTargetEntity();
+    if (target != null && Distance.isMouseDown(0)) {
+        Distance.attack(target);
+    }
+});
+```
+
+### `Distance.swing()`
+
+Swings player's hand.
+
+```javascript
+Distance.swing();
+```
+
+### `Distance.canSeeEntity(entity)`
+
+Returns `true` if player has line of sight to entity.
+
+```javascript
+var target = Distance.getTargetEntity();
+if (target != null && Distance.canSeeEntity(target)) {
+    Distance.chat("Can see target!");
+}
+```
+
+### `Distance.getReachDistance()`
+
+Returns player's reach distance.
+
+```javascript
+var reach = Distance.getReachDistance();
+Distance.chat("Reach: " + reach);
+```
+
+---
+
 ## World & Game API
 
-### `Distance.isWorldNull()`
+### World Checks
 Returns `true` if world doesn't exist.
 
 ```javascript
@@ -206,7 +330,9 @@ if (Distance.isWorldNull()) {
 }
 ```
 
-### `Distance.getFPS()`
+### FPS & Time
+
+#### `Distance.getFPS()`
 Returns current frames per second.
 
 ```javascript
@@ -216,7 +342,7 @@ Distance.on("render2d", function() {
 });
 ```
 
-### `Distance.getWorldTime()`
+#### `Distance.getWorldTime()`
 Returns world time (0-23999).
 
 ```javascript
@@ -246,6 +372,21 @@ Distance.on("tick", function() {
     }
     
     if (Distance.isKeyDown(57)) { // Space
+        Distance.chat("Jumping!");
+    }
+});
+```
+
+#### `Distance.isKeyDown(keyName)`
+Returns `true` if key is pressed (using key name).
+
+```javascript
+Distance.on("tick", function() {
+    if (Distance.isKeyDown("W")) {
+        Distance.chat("Moving forward!");
+    }
+    
+    if (Distance.isKeyDown("SPACE")) {
         Distance.chat("Jumping!");
     }
 });
@@ -430,17 +571,28 @@ if (item != null) {
 - `maxDamage` - Maximum damage
 - `id` - Item registry ID
 
-### `Distance.getInventory()`
+### `Distance.getInventory(type)`
 
-Returns array of all inventory items.
+Returns array of inventory items. Type can be "all", "hotbar", or "inventory".
 
 ```javascript
-var inventory = Distance.getInventory();
-for (var i = 0; i < inventory.length; i++) {
-    if (inventory[i] != null) {
-        Distance.log("Slot " + i + ": " + inventory[i].name);
+var hotbar = Distance.getInventory("hotbar");
+var mainInventory = Distance.getInventory("inventory");
+var all = Distance.getInventory("all");  // or just Distance.getInventory()
+
+for (var i = 0; i < hotbar.length; i++) {
+    if (hotbar[i] != null) {
+        Distance.log("Hotbar slot " + i + ": " + hotbar[i].name);
     }
 }
+```
+
+### `Distance.setSlot(slot)`
+
+Sets the active hotbar slot (0-8).
+
+```javascript
+Distance.setSlot(0);
 ```
 
 ### `Distance.moveItem(fromSlot, toSlot)`
@@ -479,6 +631,19 @@ Distance.on("render2d", function() {
 });
 ```
 
+#### `Distance.drawResource(path, x, y, width, height)`
+
+Draws a Minecraft resource texture.
+
+```javascript
+Distance.on("render2d", function() {
+    Distance.drawResource("textures/blocks/dirt.png", 10, 10, 32, 32);
+    Distance.drawResource("textures/items/diamond_sword.png", 50, 10, 32, 32);
+    
+    Distance.drawResource("minecraft:textures/entity/creeper/creeper.png", 100, 10, 32, 32);
+});
+```
+
 ### 3D Rendering
 
 #### `Distance.drawBox3D(x, y, z, width, height, depth, color)`
@@ -510,6 +675,38 @@ Distance.on("render3d", function() {
     var pz = Distance.getPlayerZ();
     
     Distance.drawLine3D(px, py, pz, px + 5, py + 5, pz + 5, 0xFFFF0000);
+});
+```
+
+#### `Distance.drawSphere(x, y, z, radius, slices, stacks, color)`
+
+Draws a 3D sphere.
+
+```javascript
+Distance.on("render3d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var px = Distance.getPlayerX();
+    var py = Distance.getPlayerY();
+    var pz = Distance.getPlayerZ();
+    
+    Distance.drawSphere(px + 3, py, pz, 1.0, 16, 16, 0x80FF00FF);
+});
+```
+
+#### `Distance.drawPyramid(x, y, z, width, height, color)`
+
+Draws a 3D pyramid.
+
+```javascript
+Distance.on("render3d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var px = Distance.getPlayerX();
+    var py = Distance.getPlayerY();
+    var pz = Distance.getPlayerZ();
+    
+    Distance.drawPyramid(px + 3, py, pz, 2, 3, 0x80FFAA00);
 });
 ```
 
