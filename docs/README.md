@@ -82,10 +82,13 @@ Distance.on("render3d", function() { })
 Distance.on("attack", function(target) { })
 ```
 
+## Contributing
+
+Feel free to submit issues and enhancement requests!
 
 ## License
 
-CC BY-ND 4.0
+[Add your license here]
 
 ---
 
