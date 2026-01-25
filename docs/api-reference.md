@@ -4,6 +4,7 @@ Complete reference for all Distance API functions.
 
 ## Table of Contents
 
+- [Projection & Coordinates](#projection--coordinates)
 - [Core Functions](#core-functions)
 - [Player API](#player-api)
 - [Rotation & Combat](#rotation--combat)
@@ -14,6 +15,72 @@ Complete reference for all Distance API functions.
 - [Inventory & Items](#inventory--items)
 - [Advanced Rendering](#advanced-rendering)
 - [Gameplay Actions](#gameplay-actions)
+
+---
+
+## Projection & Coordinates
+
+### `Distance.worldToScreen(x, y, z)`
+
+Converts 3D world coordinates to 2D screen coordinates.
+
+**Returns:** Object with `x`, `y`, `z` (depth), and `visible` (boolean), or `null` if projection fails.
+
+```javascript
+Distance.on("render2d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var entities = Distance.getEntities();
+    for (var i = 0; i < entities.length; i++) {
+        var e = entities[i];
+        var screenPos = Distance.worldToScreen(e.x, e.y + 2, e.z);
+        
+        if (screenPos != null && screenPos.visible) {
+            Distance.drawTextShadow(
+                e.name,
+                screenPos.x,
+                screenPos.y,
+                0xFFFFFF
+            );
+        }
+    }
+});
+```
+
+**Use cases:**
+- ESP/Nametags
+- Health bars above entities
+- Distance markers
+- World position labels
+
+**Example - Distance Labels:**
+```javascript
+Distance.on("render2d", function() {
+    if (Distance.isPlayerNull()) return;
+    
+    var entities = Distance.getEntities();
+    var px = Distance.getPlayerX();
+    var py = Distance.getPlayerY();
+    var pz = Distance.getPlayerZ();
+    
+    for (var i = 0; i < entities.length; i++) {
+        var e = entities[i];
+        if (e.type !== "Player") continue;
+        
+        var dist = Distance.getDistance(px, py, pz, e.x, e.y, e.z);
+        var screenPos = Distance.worldToScreen(e.x, e.y + 2.5, e.z);
+        
+        if (screenPos != null && screenPos.visible) {
+            Distance.drawTextShadow(
+                e.name + " [" + dist.toFixed(1) + "m]",
+                screenPos.x - Distance.textWidth(e.name) / 2,
+                screenPos.y,
+                0xFFFFFF
+            );
+        }
+    }
+});
+```
 
 ---
 
@@ -242,12 +309,20 @@ Distance.on("tick", function() {
 
 ## Rotation & Combat
 
-### `Distance.setRotation(yaw, pitch)`
+### `Distance.setRotation(float yaw, float pitch)`
 
 Sets player's rotation.
 
 ```javascript
 Distance.setRotation(90, 0);
+```
+
+### `Distance.setSilentRotation(yaw, pitch)`
+
+Sets silent rotation (rotations not sent to server).
+
+```javascript
+Distance.setSilentRotation(90, 0);
 ```
 
 ### `Distance.lookAt(x, y, z)`
@@ -314,6 +389,40 @@ Returns player's reach distance.
 ```javascript
 var reach = Distance.getReachDistance();
 Distance.chat("Reach: " + reach);
+```
+
+### Utilities
+
+#### `Distance.setTimeout(task, delayMs)`
+
+Executes a function after a delay.
+
+```javascript
+Distance.chat("Starting timer...");
+
+Distance.setTimeout(function() {
+    Distance.chat("3 seconds passed!");
+}, 3000);
+```
+
+**Use for:**
+- Delayed actions
+- Timers
+- Scheduled tasks
+
+```javascript
+var counter = 0;
+
+function countdown() {
+    counter++;
+    Distance.chat("Count: " + counter);
+    
+    if (counter < 10) {
+        Distance.setTimeout(countdown, 1000);
+    }
+}
+
+countdown();
 ```
 
 ---
@@ -587,6 +696,51 @@ for (var i = 0; i < hotbar.length; i++) {
 }
 ```
 
+### `Distance.getContainerItems()`
+
+Returns all items in the currently open container.
+
+```javascript
+Distance.on("chestOpen", function() {
+    var items = Distance.getContainerItems();
+    Distance.chat("Container has " + items.length + " slots");
+    
+    for (var i = 0; i < items.length; i++) {
+        if (items[i] != null) {
+            Distance.log("Slot " + i + ": " + items[i].name);
+        }
+    }
+});
+```
+
+### `Distance.getChestItems()`
+
+Returns only the chest items (excludes player inventory from container).
+
+```javascript
+Distance.on("chestOpen", function() {
+    var chestItems = Distance.getChestItems();
+    Distance.chat("Chest has " + chestItems.length + " items");
+    
+    for (var i = 0; i < chestItems.length; i++) {
+        if (chestItems[i] != null) {
+            Distance.chat("Chest slot " + i + ": " + chestItems[i].name);
+        }
+    }
+});
+```
+
+### `Distance.getSlot(index)`
+
+Returns a specific slot's item from the open container.
+
+```javascript
+var firstSlot = Distance.getSlot(0);
+if (firstSlot != null) {
+    Distance.chat("First slot: " + firstSlot.name);
+}
+```
+
 ### `Distance.setSlot(slot)`
 
 Sets the active hotbar slot (0-8).
@@ -707,6 +861,29 @@ Distance.on("render3d", function() {
     var pz = Distance.getPlayerZ();
     
     Distance.drawPyramid(px + 3, py, pz, 2, 3, 0x80FFAA00);
+});
+```
+
+#### `Distance.drawOutline(entity, color, lineWidth)`
+
+Draws an outline around an entity.
+
+```javascript
+Distance.on("render3d", function() {
+    var target = Distance.getTargetEntity();
+    if (target != null) {
+        Distance.drawOutline(target, 0xFFFF0000, 2.0);
+    }
+});
+```
+
+#### `Distance.drawOutline(x, y, z, color, lineWidth)`
+
+Draws an outline box at coordinates.
+
+```javascript
+Distance.on("render3d", function() {
+    Distance.drawOutline(100, 64, 100, 0xFF00FF00, 2.0);
 });
 ```
 
